@@ -1,9 +1,14 @@
 import React from 'react';
 import { Link, Outlet } from 'react-router-dom';
+import { useLoader } from '../contexts/LoaderContext';
+import Loader from './Loader';
 
 export default function Layout() {
+    const { loading } = useLoader();
+
     return (
         <>
+            {loading && <Loader />}
             <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
                 <div className="container">
                     <Link className="navbar-brand" to="/">MovieApp</Link>

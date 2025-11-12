@@ -1,23 +1,32 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import api from '../services/api';
+import ReviewForm from '../components/ReviewForm';
+import { useLoader } from '../contexts/LoaderContext';
 
 export default function MovieDetail() {
     const { id } = useParams();
     const [movie, setMovie] = useState(null);
-    const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const { showLoader, hideLoader } = useLoader();
 
     useEffect(() => {
-        setLoading(true);
+        showLoader();
         api.get(`/api/movies/${id}`)
             .then(res => setMovie(res.data))
             .catch(err => {
                 console.error(err);
                 setError('Errore durante il caricamento del film.');
             })
-            .finally(() => setLoading(false));
+            .finally(() => hideLoader());
     }, [id]);
+
+    const handleReviewAdded = (newReview) => {
+        setMovie(prev => ({
+            ...prev,
+            reviews: [...(prev.reviews || []), newReview]
+        }));
+    };
 
     const getImageSrc = (item) => {
         const filename = item && (item.image || item.cover);
@@ -30,12 +39,11 @@ export default function MovieDetail() {
 
     const imgStyle = {
         width: '100%',
-        height: '600px',
+        height: '320px',
         objectFit: 'cover',
         display: 'block'
     };
 
-    if (loading) return <div>Caricamento...</div>;
     if (error) return <div className="alert alert-danger">{error}</div>;
     if (!movie) return (
         <div>
@@ -74,6 +82,8 @@ export default function MovieDetail() {
                 ) : (
                     <p>Nessuna recensione disponibile.</p>
                 )}
+
+                <ReviewForm movieId={movie.id} onReviewAdded={handleReviewAdded} />
 
                 <Link to="/" className="btn btn-secondary mt-3">Torna alla home</Link>
             </div>

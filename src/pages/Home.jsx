@@ -1,21 +1,22 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../services/api';
+import { useLoader } from '../contexts/LoaderContext';
 
 export default function Home() {
     const [movies, setMovies] = useState([]);
-    const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const { showLoader, hideLoader } = useLoader();
 
     const imgStyle = {
         width: '100%',
-        height: '600px',
+        height: '300px',
         objectFit: 'cover',
         display: 'block'
     };
 
     useEffect(() => {
-        setLoading(true);
+        showLoader();
         api.get('/api/movies')
             .then(res => {
                 setMovies(Array.isArray(res.data) ? res.data : []);
@@ -24,18 +25,18 @@ export default function Home() {
                 console.error(err);
                 setError('Errore durante il caricamento dei film.');
             })
-            .finally(() => setLoading(false));
+            .finally(() => hideLoader());
     }, []);
 
     const getImageSrc = (movie) => {
         const filename = movie.image || movie.cover;
         if (!filename) return null;
+        if (/^https?:\/\//i.test(filename)) return filename;
         const base = (api && api.defaults && api.defaults.baseURL) ? api.defaults.baseURL.replace(/\/$/, '') : 'http://localhost:3000';
         const imagesPath = '/images/';
         return `${base}${imagesPath}${filename.replace(/^\/+/, '')}`;
     };
 
-    if (loading) return <div>Caricamento...</div>;
     if (error) return <div className="alert alert-danger">{error}</div>;
 
     return (
